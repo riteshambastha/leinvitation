@@ -2,23 +2,19 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import TemplatePicker from '@/components/TemplatePicker'
+import { getTemplate } from '@/lib/templates'
 
-const THEMES = [
-  { id: 'confetti', label: '🎊 Confetti' },
-  { id: 'elegant', label: '🌹 Elegant' },
-  { id: 'garden', label: '🌸 Garden' },
-  { id: 'retro', label: '🕺 Retro' },
-  { id: 'minimal', label: '✨ Minimal' },
-]
-
-const EMOJIS = ['🎂', '🎉', '🥳', '🎈', '🎁', '🌟', '🦄', '🍰', '🎀', '🥂']
+type Step = 'template' | 'details'
 
 export default function CreateClient() {
   const router = useRouter()
+  const [step, setStep] = useState<Step>('template')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const [form, setForm] = useState({
+    template_id: 'birthday',
     host_name: '',
     host_email: '',
     title: '',
@@ -27,7 +23,6 @@ export default function CreateClient() {
     venue: '',
     venue_address: '',
     description: '',
-    theme: 'confetti',
     cover_emoji: '🎂',
     plus_ones_allowed: true,
     message_prompt: 'Looking forward to seeing you!',
@@ -35,6 +30,8 @@ export default function CreateClient() {
 
   const set = (field: string, value: string | boolean) =>
     setForm(f => ({ ...f, [field]: value }))
+
+  const selectedTemplate = getTemplate(form.template_id)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -44,7 +41,7 @@ export default function CreateClient() {
       const res = await fetch('/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, theme: form.template_id }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Failed to create invite')
@@ -56,15 +53,75 @@ export default function CreateClient() {
     }
   }
 
+  // ── Step 1: Pick a template ──────────────────────────────────────────────
+  if (step === 'template') {
+    return (
+      <div className="py-10 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-extrabold text-gray-900">Choose a theme</h1>
+            <p className="text-gray-500 mt-1">Pick the design for your invitation — you can always come back</p>
+          </div>
+
+          <div className="card mb-6">
+            <TemplatePicker
+              selected={form.template_id}
+              onSelect={id => set('template_id', id)}
+            />
+          </div>
+
+          {/* Preview strip */}
+          <div className="rounded-2xl overflow-hidden mb-6 shadow-md">
+            <div className="h-28 flex flex-col items-center justify-center gap-2 text-center px-4 relative overflow-hidden"
+              style={{ background: selectedTemplate.header.background }}>
+              {selectedTemplate.header.overlay && (
+                <div className="absolute inset-0" style={{ background: selectedTemplate.header.overlay, mixBlendMode: 'multiply' }} />
+              )}
+              <div className="relative z-10 flex gap-2 text-2xl mb-1">
+                {selectedTemplate.header.decorEmojis.slice(0, 5).map((e, i) => <span key={i}>{e}</span>)}
+              </div>
+              <p className="relative z-10 font-bold text-lg" style={{ color: selectedTemplate.header.textColor, textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+                {selectedTemplate.header.tagline}
+              </p>
+            </div>
+            <div className="bg-white px-4 py-3 flex items-center justify-between">
+              <p className="text-sm text-gray-500">
+                <span className="font-semibold text-gray-900">{selectedTemplate.emoji} {selectedTemplate.name}</span>
+                {' '}· {selectedTemplate.description}
+              </p>
+              <span className="text-xs text-gray-400">{selectedTemplate.ageRange}</span>
+            </div>
+          </div>
+
+          <button onClick={() => setStep('details')}
+            className="btn-primary w-full py-4 text-lg">
+            Use this theme — fill in details →
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Step 2: Fill in event details ────────────────────────────────────────
   return (
     <div className="py-10 px-4">
       <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-extrabold text-gray-900">Create your invite</h1>
-          <p className="text-gray-500 mt-1">Fill in the details — takes 2 minutes</p>
+        <div className="flex items-center gap-3 mb-8">
+          <button onClick={() => setStep('template')}
+            className="text-purple-600 text-sm hover:underline">
+            ← Change theme
+          </button>
+          <div className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-full px-3 py-1">
+            <span>{selectedTemplate.emoji}</span>
+            <span className="text-sm font-semibold text-purple-700">{selectedTemplate.name}</span>
+          </div>
         </div>
 
+        <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Event details</h1>
+        <p className="text-gray-500 mb-8">Fill in the info — takes 2 minutes</p>
+
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Host */}
           <div className="card space-y-4">
             <h2 className="font-bold text-gray-900 text-lg">About you</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -77,17 +134,19 @@ export default function CreateClient() {
                 <label className="label">Your email *</label>
                 <input className="input" type="email" required value={form.host_email}
                   onChange={e => set('host_email', e.target.value)} placeholder="alex@email.com" />
-                <p className="text-xs text-gray-400 mt-1">We'll email you RSVPs</p>
+                <p className="text-xs text-gray-400 mt-1">We'll send RSVPs here</p>
               </div>
             </div>
           </div>
 
+          {/* Event */}
           <div className="card space-y-4">
-            <h2 className="font-bold text-gray-900 text-lg">Event details</h2>
+            <h2 className="font-bold text-gray-900 text-lg">The party</h2>
             <div>
               <label className="label">Party title *</label>
               <input className="input" required value={form.title}
-                onChange={e => set('title', e.target.value)} placeholder="Alex's 30th Birthday Bash!" />
+                onChange={e => set('title', e.target.value)}
+                placeholder="Liam's Minecraft 7th Birthday!" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -102,57 +161,45 @@ export default function CreateClient() {
               </div>
             </div>
             <div>
-              <label className="label">Venue name *</label>
+              <label className="label">Venue *</label>
               <input className="input" required value={form.venue}
-                onChange={e => set('venue', e.target.value)} placeholder="The Rooftop Bar" />
+                onChange={e => set('venue', e.target.value)} placeholder="Our backyard" />
             </div>
             <div>
-              <label className="label">Venue address</label>
+              <label className="label">Address</label>
               <input className="input" value={form.venue_address}
-                onChange={e => set('venue_address', e.target.value)} placeholder="123 Main St, San Francisco" />
+                onChange={e => set('venue_address', e.target.value)} placeholder="123 Main St" />
             </div>
             <div>
               <label className="label">Message to guests</label>
               <textarea className="input resize-none" rows={3} value={form.description}
                 onChange={e => set('description', e.target.value)}
-                placeholder="Come celebrate with us! Dress code: smart casual..." />
+                placeholder="Come dressed as your favourite Minecraft character! Cake and snacks provided 🎂" />
             </div>
           </div>
 
-          <div className="card space-y-4">
-            <h2 className="font-bold text-gray-900 text-lg">Look & feel</h2>
-            <div>
-              <label className="label">Cover emoji</label>
-              <div className="flex flex-wrap gap-2">
-                {EMOJIS.map(e => (
-                  <button key={e} type="button"
-                    onClick={() => set('cover_emoji', e)}
-                    className={`text-2xl w-12 h-12 rounded-xl border-2 transition-all ${form.cover_emoji === e ? 'border-purple-500 bg-purple-50 scale-110' : 'border-gray-200 hover:border-purple-300'}`}>
-                    {e}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="label">Theme</label>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                {THEMES.map(t => (
-                  <button key={t.id} type="button"
-                    onClick={() => set('theme', t.id)}
-                    className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${form.theme === t.id ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-300'}`}>
-                    {t.label}
-                  </button>
-                ))}
-              </div>
+          {/* Cover emoji */}
+          <div className="card">
+            <h2 className="font-bold text-gray-900 text-lg mb-3">Cover emoji</h2>
+            <div className="flex flex-wrap gap-2">
+              {['🎂', '🎉', '🥳', '🎈', '🎁', '🌟', '🦄', '🍰', '🎀', '🥂',
+                '⛏️', '🕷️', '🍌', '⚔️', '🎮', '👑', '🌈', '💎'].map(e => (
+                <button key={e} type="button"
+                  onClick={() => set('cover_emoji', e)}
+                  className={`text-2xl w-12 h-12 rounded-xl border-2 transition-all ${form.cover_emoji === e ? 'border-purple-500 bg-purple-50 scale-110' : 'border-gray-200 hover:border-purple-300'}`}>
+                  {e}
+                </button>
+              ))}
             </div>
           </div>
 
+          {/* Options */}
           <div className="card">
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={form.plus_ones_allowed}
                 onChange={e => set('plus_ones_allowed', e.target.checked)}
                 className="w-5 h-5 rounded accent-purple-600" />
-              <span className="text-gray-700">Allow guests to bring +1s</span>
+              <span className="text-gray-700">Allow guests to bring siblings / +1s</span>
             </label>
           </div>
 

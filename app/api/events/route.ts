@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     const body = await req.json()
     const {
       host_name, host_email, title, date, time, venue, venue_address,
-      description, theme, cover_emoji, plus_ones_allowed, message_prompt,
+      description, theme, template_id, cover_emoji, plus_ones_allowed, message_prompt,
     } = body
 
     if (!host_name || !host_email || !title || !date || !time || !venue) {
@@ -19,11 +19,13 @@ export async function POST(req: Request) {
     const { data: { user } } = await serverClient.auth.getUser()
 
     const supabase = createAdminClient()
+    const resolvedTemplate = template_id ?? theme ?? 'birthday'
     const { data: event, error } = await supabase
       .from('events')
       .insert({
         host_name, host_email, title, date, time, venue, venue_address,
-        description, theme: theme ?? 'confetti', cover_emoji: cover_emoji ?? '🎂',
+        description, theme: resolvedTemplate, template_id: resolvedTemplate,
+        cover_emoji: cover_emoji ?? '🎂',
         plus_ones_allowed: plus_ones_allowed ?? true, message_prompt,
         user_id: user?.id ?? null,
       })

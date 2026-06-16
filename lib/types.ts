@@ -11,6 +11,7 @@ export interface Event {
   venue_address?: string
   description?: string
   theme: Theme
+  template_id: string
   cover_emoji: string
   max_guests?: number
   plus_ones_allowed: boolean
