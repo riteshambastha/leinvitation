@@ -48,15 +48,13 @@ export default function RSVPClient({ event }: { event: Event }) {
   // ── Confirmation screen ──────────────────────────────────────────────────
   if (submitted) {
     const msgs = {
-      attending:     { emoji: '🎉', headline: "You're going!",      sub: "Can't wait to celebrate!" },
-      not_attending: { emoji: '😢', headline: 'Sorry to miss you!', sub: `${event.host_name} will miss you.` },
+      attending:     { emoji: '🎉', headline: "You're going!",        sub: "Can't wait to celebrate!" },
+      not_attending: { emoji: '😢', headline: 'Sorry to miss you!',   sub: `${event.host_name} will miss you.` },
       maybe:         { emoji: '🤔', headline: 'Maybe see you there!', sub: 'Let us know when you decide.' },
     }
     const msg = msgs[form.rsvp_status as keyof typeof msgs] ?? msgs.attending
-
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center"
-        style={{ background: 'linear-gradient(135deg, #f9f0ff, #fff0f5)' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-gray-50">
         <div className="w-24 h-24 rounded-full flex items-center justify-center text-5xl mb-6 shadow-lg"
           style={{ background: template.header.background }}>
           {msg.emoji}
@@ -80,101 +78,147 @@ export default function RSVPClient({ event }: { event: Event }) {
     )
   }
 
-  // ── Banner area (pure visual — no text on top of it) ─────────────────────
-  const BannerSection = () => {
-    if (event.banner_url) {
-      // Custom uploaded image
-      return (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={event.banner_url}
-          alt=""
-          className="w-full object-cover"
-          style={{ maxHeight: 260 }}
-        />
-      )
-    }
-    if (banner) {
-      const { Component } = banner
-      return <Component className="w-full" style={{ display: 'block', maxHeight: 260 }}/>
-    }
-    // Fallback: gradient strip with decorative emojis only
-    return (
-      <div className="relative w-full overflow-hidden" style={{ height: 220, background: template.header.background }}>
-        {template.header.overlay && (
-          <div className="absolute inset-0" style={{ background: template.header.overlay }}/>
-        )}
-        <div className="absolute inset-0 flex items-center justify-center">
-          {template.header.decorEmojis.slice(0, 7).map((em, i) => {
-            const positions = [
-              { top: '12%', left: '8%' },  { top: '10%', right: '10%' },
-              { top: '55%', left: '5%' },  { top: '60%', right: '6%' },
-              { top: '35%', left: '50%' }, { bottom: '12%', left: '25%' },
-              { bottom: '14%', right: '25%' },
-            ]
-            return (
-              <span key={i} className="absolute text-5xl select-none"
-                style={{ ...positions[i], opacity: 0.55, transform: `rotate(${(i * 37) % 60 - 30}deg)` }}>
-                {em}
-              </span>
-            )
-          })}
-        </div>
-      </div>
-    )
-  }
-
-  // ── Main RSVP page ───────────────────────────────────────────────────────
+  // ── Main page ────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen pb-12 bg-gray-50">
+    <div className="min-h-screen bg-gray-100 pb-16">
 
-      {/* ── Banner (visual only, nothing written on it) ───────────────────── */}
-      <div className="w-full overflow-hidden" style={{ maxHeight: 260 }}>
-        <BannerSection/>
-      </div>
+      {/* ── Invitation Card ─────────────────────────────────────────────── */}
+      <div className="flex justify-center px-4 pt-8 pb-6">
+        <div
+          className="relative overflow-hidden w-full"
+          style={{
+            maxWidth: 420,
+            aspectRatio: '5 / 7',
+            borderRadius: 24,
+            boxShadow: '0 30px 80px rgba(0,0,0,0.35)',
+          }}
+        >
+          {/* Background: themed SVG or custom image filling the card */}
+          {event.banner_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={event.banner_url}
+              alt=""
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : banner ? (
+            <banner.Component
+              preserveAspectRatio="xMidYMid slice"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+            />
+          ) : (
+            <div style={{ position: 'absolute', inset: 0, background: template.header.background }}>
+              {template.header.overlay && (
+                <div style={{ position: 'absolute', inset: 0, background: template.header.overlay }}/>
+              )}
+              {/* Scattered emojis as fallback */}
+              {template.header.decorEmojis.map((em, i) => {
+                const pos = [
+                  { top: '8%',  left: '8%' },  { top: '6%',  right: '10%' },
+                  { top: '30%', left: '5%' },   { top: '28%', right: '6%' },
+                  { top: '55%', left: '7%' },   { top: '52%', right: '8%' },
+                  { bottom: '8%', left: '10%' }, { bottom: '6%', right: '12%' },
+                ][i % 8]
+                return (
+                  <span key={i} style={{
+                    position: 'absolute', fontSize: 36, opacity: 0.45,
+                    transform: `rotate(${(i * 37) % 60 - 30}deg)`, ...pos,
+                  }}>{em}</span>
+                )
+              })}
+            </div>
+          )}
 
-      {/* ── Accent strip to connect banner with content ───────────────────── */}
-      <div className="h-2" style={{ background: template.button.background }}/>
+          {/* Gradient scrim — top fade + strong bottom fade for text */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, transparent 30%, transparent 45%, rgba(0,0,0,0.72) 100%)',
+          }}/>
 
-      <div className="max-w-lg mx-auto px-4 py-5 space-y-4">
-
-        {/* ── Event title card ──────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-6 py-5 text-center">
-          <div className="text-5xl mb-3">{event.cover_emoji}</div>
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-1">{event.title}</h1>
-          <p className="text-gray-500 font-medium">Hosted by {event.host_name}</p>
-          <p className="text-sm italic mt-1" style={{ color: template.button.background }}>
+          {/* Top-left: tagline badge */}
+          <div style={{
+            position: 'absolute', top: 20, left: 20,
+            background: template.button.background,
+            color: template.button.text,
+            padding: '4px 12px', borderRadius: 999,
+            fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
+            textTransform: 'uppercase', opacity: 0.92,
+          }}>
             {template.header.tagline}
-          </p>
-        </div>
+          </div>
 
-        {/* ── Event details card ────────────────────────────────────────────── */}
-        <div className="card">
-          <div className="space-y-3">
-            <div className="flex items-start gap-3">
-              <span className="text-xl">📅</span>
-              <div>
-                <p className="font-semibold text-gray-900">{eventDate}</p>
-                <p className="text-gray-500 text-sm">at {event.time}</p>
-              </div>
+          {/* Card text content — bottom of card */}
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0,
+            padding: '28px 28px 32px',
+            textAlign: 'center',
+          }}>
+            {/* Emoji */}
+            <div style={{ fontSize: 52, marginBottom: 10, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.4))' }}>
+              {event.cover_emoji}
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-xl">📍</span>
-              <div>
-                <p className="font-semibold text-gray-900">{event.venue}</p>
-                {event.venue_address && <p className="text-gray-500 text-sm">{event.venue_address}</p>}
-              </div>
+
+            {/* Title */}
+            <h1 style={{
+              color: 'white',
+              fontSize: 26,
+              fontWeight: 900,
+              lineHeight: 1.2,
+              marginBottom: 6,
+              textShadow: '0 2px 16px rgba(0,0,0,0.6)',
+            }}>
+              {event.title}
+            </h1>
+
+            {/* Host */}
+            <p style={{
+              color: 'rgba(255,255,255,0.85)',
+              fontSize: 14,
+              fontWeight: 500,
+              marginBottom: 18,
+              textShadow: '0 1px 6px rgba(0,0,0,0.5)',
+            }}>
+              Hosted by {event.host_name}
+            </p>
+
+            {/* Date / Venue pill — frosted glass */}
+            <div style={{
+              background: 'rgba(255,255,255,0.15)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              borderRadius: 14,
+              padding: '12px 18px',
+              display: 'inline-block',
+              textAlign: 'left',
+              minWidth: 200,
+            }}>
+              <p style={{ color: 'white', fontSize: 13, fontWeight: 600, marginBottom: 5, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+                📅 {eventDate}
+              </p>
+              <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 500, marginBottom: event.venue ? 5 : 0, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+                ⏰ {event.time}
+              </p>
+              <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 500, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+                📍 {event.venue}
+              </p>
             </div>
-            {event.description && (
-              <div className="pt-3 border-t border-gray-100">
-                <p className="text-gray-600 text-sm italic">{event.description}</p>
-              </div>
-            )}
           </div>
         </div>
+      </div>
 
-        {/* ── RSVP form card ────────────────────────────────────────────────── */}
-        <div className="card">
+      {/* ── Description (if any) ────────────────────────────────────────── */}
+      {event.description && (
+        <div className="max-w-md mx-auto px-4 mb-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4">
+            <p className="text-gray-600 text-sm italic text-center">{event.description}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── RSVP form ───────────────────────────────────────────────────── */}
+      <div className="max-w-md mx-auto px-4 space-y-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-5">Will you be there?</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
 
@@ -255,7 +299,7 @@ export default function RSVPClient({ event }: { event: Event }) {
           </form>
         </div>
 
-        <p className="text-center text-gray-400 text-xs">
+        <p className="text-center text-gray-400 text-xs pb-4">
           Powered by <span className="font-semibold" style={{ color: template.button.background }}>BdayInvite</span> — free forever
         </p>
       </div>
