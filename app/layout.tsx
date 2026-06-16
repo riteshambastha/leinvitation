@@ -14,6 +14,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"
+        />
+      </head>
       <body className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex flex-col">
         <div className="flex-1">{children}</div>
         <Footer />
