@@ -130,10 +130,12 @@ export default function RSVPClient({ event }: { event: Event }) {
             </div>
           )}
 
-          {/* Gradient scrim — top fade + strong bottom fade for text */}
+          {/* Gradient scrim — stronger when photo present so top circle stands out */}
           <div style={{
             position: 'absolute', inset: 0,
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, transparent 30%, transparent 45%, rgba(0,0,0,0.72) 100%)',
+            background: event.child_photo_url
+              ? 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.1) 38%, transparent 50%, rgba(0,0,0,0.78) 100%)'
+              : 'linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, transparent 30%, transparent 45%, rgba(0,0,0,0.72) 100%)',
           }}/>
 
           {/* Top-left: tagline badge */}
@@ -148,16 +150,61 @@ export default function RSVPClient({ event }: { event: Event }) {
             {template.header.tagline}
           </div>
 
+          {/* Child photo — circular portrait centered in upper card area */}
+          {event.child_photo_url && (
+            <div style={{
+              position: 'absolute',
+              top: '14%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 10,
+            }}>
+              {/* Outer glow ring */}
+              <div style={{
+                width: 130,
+                height: 130,
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.25)',
+                backdropFilter: 'blur(4px)',
+                WebkitBackdropFilter: 'blur(4px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 0 3px rgba(255,255,255,0.5), 0 8px 32px rgba(0,0,0,0.4)',
+              }}>
+                {/* Inner photo circle */}
+                <div style={{
+                  width: 116,
+                  height: 116,
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  border: '3px solid white',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                  flexShrink: 0,
+                }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={event.child_photo_url}
+                    alt="Birthday child"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Card text content — bottom of card */}
           <div style={{
             position: 'absolute', bottom: 0, left: 0, right: 0,
             padding: '28px 28px 32px',
             textAlign: 'center',
           }}>
-            {/* Emoji */}
+            {/* Emoji — hidden when child photo is shown */}
+            {!event.child_photo_url && (
             <div style={{ fontSize: 52, marginBottom: 10, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.4))' }}>
               {event.cover_emoji}
             </div>
+            )}
 
             {/* Title */}
             <h1 style={{
@@ -311,9 +358,14 @@ export default function RSVPClient({ event }: { event: Event }) {
           </form>
         </div>
 
-        <p className="text-center text-gray-400 text-xs pb-4">
-          Powered by <span className="font-semibold" style={{ color: template.button.background }}>Le` Invitation</span> — free forever
-        </p>
+        <div className="text-center text-gray-400 text-xs pb-6 space-y-1">
+          <p>
+            Powered by{' '}
+            <span className="font-semibold" style={{ color: template.button.background }}>Le&#96; Invitation</span>
+            {' '}— free forever
+          </p>
+          <p>Le&#96; Invitation is a product of <span className="font-medium text-gray-500">Rich Gravity Solutions LLC, NJ</span></p>
+        </div>
       </div>
     </div>
   )

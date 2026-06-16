@@ -18,8 +18,9 @@ export interface Event {
   message_prompt?: string
   dashboard_token: string  // secret token for host to access dashboard
   user_id?: string
-  banner_id?: string       // library banner id (e.g. 'minions-banana')
-  banner_url?: string      // custom uploaded image URL
+  banner_id?: string        // library banner id (e.g. 'minions-banana')
+  banner_url?: string       // custom uploaded banner image URL
+  child_photo_url?: string  // optional child portrait shown on the card
   created_at: string
 }
 

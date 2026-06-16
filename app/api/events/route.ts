@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     const {
       host_name, host_email, title, date, time, venue, venue_address,
       description, theme, template_id, cover_emoji, plus_ones_allowed, message_prompt,
-      banner_id, banner_url,
+      banner_id, banner_url, child_photo_url,
     } = body
 
     if (!host_name || !host_email || !title || !date || !time || !venue) {
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
         plus_ones_allowed: plus_ones_allowed ?? true, message_prompt,
         banner_id: banner_id ?? null,
         banner_url: banner_url ?? null,
+        child_photo_url: child_photo_url ?? null,
         user_id: user?.id ?? null,
       })
       .select()

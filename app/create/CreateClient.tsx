@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import TemplatePicker from '@/components/TemplatePicker'
 import BannerPicker from '@/components/BannerPicker'
@@ -19,6 +19,7 @@ export default function CreateClient() {
     template_id: 'birthday',
     banner_id: null as string | null,
     banner_url: null as string | null,
+    child_photo_url: null as string | null,
     host_name: '',
     host_email: '',
     title: '',
@@ -44,6 +45,30 @@ export default function CreateClient() {
       if (first) setForm(f => ({ ...f, banner_id: first.id, banner_url: null }))
     }
     setStep('banner')
+  }
+
+  const childPhotoRef = useRef<HTMLInputElement>(null)
+  const [photoUploading, setPhotoUploading] = useState(false)
+  const [photoError, setPhotoError] = useState<string | null>(null)
+
+  async function handleChildPhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 8 * 1024 * 1024) { setPhotoError('Image must be under 8 MB'); return }
+    setPhotoError(null)
+    setPhotoUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/upload-child-photo', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Upload failed')
+      set('child_photo_url', data.url)
+    } catch (err: unknown) {
+      setPhotoError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setPhotoUploading(false)
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -233,6 +258,70 @@ export default function CreateClient() {
         <p className="text-gray-500 mb-8">Fill in the info — takes 2 minutes</p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+
+          {/* Child photo — hero of the invitation card */}
+          <div className="card">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <h2 className="font-bold text-gray-900 text-lg">Child's photo</h2>
+                <p className="text-gray-500 text-sm">Shows as a portrait circle on the invitation card</p>
+              </div>
+              <span className="text-xs bg-purple-100 text-purple-700 font-semibold px-2 py-1 rounded-full">Optional</span>
+            </div>
+
+            {form.child_photo_url ? (
+              <div className="flex items-center gap-5">
+                {/* Preview circle */}
+                <div style={{
+                  width: 90, height: 90, borderRadius: '50%',
+                  border: '4px solid #7c3aed',
+                  boxShadow: '0 4px 20px rgba(124,58,237,0.3)',
+                  overflow: 'hidden', flexShrink: 0,
+                }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={form.child_photo_url} alt="Child photo" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-green-700">✓ Photo uploaded</p>
+                  <p className="text-xs text-gray-400">Will appear as a circle on the invitation card</p>
+                  <div className="flex gap-3">
+                    <button type="button" onClick={() => childPhotoRef.current?.click()}
+                      className="text-sm text-purple-600 font-medium hover:underline">
+                      Replace
+                    </button>
+                    <button type="button" onClick={() => set('child_photo_url', null)}
+                      className="text-sm text-red-500 hover:underline">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <button type="button" onClick={() => childPhotoRef.current?.click()}
+                disabled={photoUploading}
+                className="w-full border-2 border-dashed border-purple-200 hover:border-purple-400 bg-purple-50/40 hover:bg-purple-50 rounded-2xl py-7 flex flex-col items-center gap-3 transition-all disabled:opacity-50">
+                {photoUploading ? (
+                  <>
+                    <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"/>
+                    <span className="text-sm text-gray-500">Uploading…</span>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center text-3xl">
+                      👶
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-gray-700">Upload your child's photo</p>
+                      <p className="text-xs text-gray-400 mt-0.5">JPG, PNG · Max 8 MB</p>
+                    </div>
+                  </>
+                )}
+              </button>
+            )}
+            <input ref={childPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleChildPhotoUpload}/>
+            {photoError && <p className="text-red-500 text-sm mt-2">{photoError}</p>}
+          </div>
+
           {/* Host */}
           <div className="card space-y-4">
             <h2 className="font-bold text-gray-900 text-lg">About you</h2>
