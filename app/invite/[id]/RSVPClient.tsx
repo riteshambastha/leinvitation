@@ -9,7 +9,6 @@ import InvitationCard from '@/components/InvitationCard'
 
 export default function RSVPClient({ event }: { event: Event }) {
   const template = getTemplate(event.template_id ?? event.theme ?? 'birthday')
-  const banner = getBanner(event.banner_id)
 
   const [form, setForm] = useState({
     name: '',
