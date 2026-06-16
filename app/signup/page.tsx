@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import { LogoStacked } from '@/components/Logo'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -47,9 +48,9 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="text-3xl font-bold text-purple-700">🎂 BdayInvite</Link>
+          <LogoStacked/>
           <h1 className="text-2xl font-extrabold text-gray-900 mt-6 mb-1">Create your account</h1>
-          <p className="text-gray-500">Start sending free birthday invites</p>
+          <p className="text-gray-500">Start sending free birthday invitations</p>
         </div>
 
         <div className="card">

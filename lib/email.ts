@@ -3,7 +3,7 @@ import type { Event } from './types'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const FROM = process.env.EMAIL_FROM ?? 'invites@bdayinvite.app'
+const FROM = process.env.EMAIL_FROM ?? 'invites@leinvitation.com'
 
 // ---- Invite email sent to each guest ----
 export async function sendInviteEmail({
@@ -162,7 +162,7 @@ function inviteEmailHtml({ event, guestName, rsvpUrl, eventDate }: {
     ${event.description ? `<div class="message-box">${event.description}</div>` : ''}
     <div class="cta"><a href="${rsvpUrl}">RSVP Now →</a></div>
   </div>
-  <div class="footer">Sent via BdayInvite — free birthday invitations forever 🎂</div>`)
+  <div class="footer">Sent via Le&#96; Invitation — free birthday invitations forever 🎉</div>`)
 }
 
 function reminderEmailHtml({ event, guestName, rsvpUrl, eventDate }: {
@@ -180,7 +180,7 @@ function reminderEmailHtml({ event, guestName, rsvpUrl, eventDate }: {
     <div class="detail-row"><span class="detail-icon">📍</span><span class="detail-text"><span class="detail-label">Where</span><br>${event.venue}${event.venue_address ? `<br><small>${event.venue_address}</small>` : ''}</span></div>
     <div class="cta"><a href="${rsvpUrl}">Update your RSVP →</a></div>
   </div>
-  <div class="footer">Sent via BdayInvite — free birthday invitations forever 🎂</div>`)
+  <div class="footer">Sent via Le&#96; Invitation — free birthday invitations forever 🎉</div>`)
 }
 
 function hostConfirmationHtml({ event, dashboardUrl, eventDate }: {
@@ -200,7 +200,7 @@ function hostConfirmationHtml({ event, dashboardUrl, eventDate }: {
     <div class="cta"><a href="${dashboardUrl}">Open My Dashboard →</a></div>
     <p style="font-size:13px;color:#6b7280;text-align:center;margin-top:16px;">Keep this link safe — anyone with it can see your guest list.</p>
   </div>
-  <div class="footer">Sent via BdayInvite — free birthday invitations forever 🎂</div>`)
+  <div class="footer">Sent via Le&#96; Invitation — free birthday invitations forever 🎉</div>`)
 }
 
 function rsvpNotificationHtml({ event, guestName, rsvpStatus, plusOnes, message, dashboardUrl }: {
@@ -221,5 +221,5 @@ function rsvpNotificationHtml({ event, guestName, rsvpStatus, plusOnes, message,
     ${message ? `<div class="message-box">"${message}"</div>` : ''}
     <div class="cta"><a href="${dashboardUrl}">View all RSVPs →</a></div>
   </div>
-  <div class="footer">Sent via BdayInvite 🎂</div>`)
+  <div class="footer">Sent via Le&#96; Invitation 🎉</div>`)
 }

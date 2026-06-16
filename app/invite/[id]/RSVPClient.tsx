@@ -300,7 +300,7 @@ export default function RSVPClient({ event }: { event: Event }) {
         </div>
 
         <p className="text-center text-gray-400 text-xs pb-4">
-          Powered by <span className="font-semibold" style={{ color: template.button.background }}>BdayInvite</span> — free forever
+          Powered by <span className="font-semibold" style={{ color: template.button.background }}>Le` Invitation</span> — free forever
         </p>
       </div>
     </div>

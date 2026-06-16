@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'BdayInvite — Free birthday invitations & RSVP',
-  description: 'Create beautiful birthday invitations, collect RSVPs, and manage your guest list — for free.',
+  title: 'Le` Invitation — Beautiful birthday invitations, free forever',
+  description: 'Create stunning themed birthday invitations, share a link, collect RSVPs, and manage your guest list — completely free.',
 }
 
 export default function RootLayout({

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { Logo } from '@/components/Logo'
 
 export default function Nav({ userEmail }: { userEmail?: string | null }) {
   const router = useRouter()
@@ -17,9 +18,7 @@ export default function Nav({ userEmail }: { userEmail?: string | null }) {
   return (
     <nav className="bg-white border-b border-gray-100 px-6 py-4">
       <div className="max-w-5xl mx-auto flex items-center justify-between">
-        <Link href={userEmail ? '/my-invites' : '/'} className="text-xl font-bold text-purple-700">
-          🎂 BdayInvite
-        </Link>
+        <Logo href={userEmail ? '/my-invites' : '/'} iconSize={32} wordSize="md"/>
 
         <div className="flex items-center gap-4">
           {userEmail ? (

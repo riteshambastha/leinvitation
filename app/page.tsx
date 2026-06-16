@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Nav from '@/components/Nav'
+import { LogoIcon, LogoWordmark } from '@/components/Logo'
 
 export default async function HomePage() {
   const supabase = createServerSupabaseClient()
@@ -15,15 +16,17 @@ export default async function HomePage() {
       <Nav />
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-16 text-center">
-        <div className="text-7xl mb-6 animate-bounce">🎉</div>
-        <h1 className="text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
-          Birthday invites,<br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
-            completely free.
-          </span>
+        <div className="mb-6 flex justify-center">
+          <LogoIcon size={80}/>
+        </div>
+        <h1 className="text-5xl font-extrabold text-gray-900 mb-3 leading-tight">
+          <LogoWordmark size="xl"/>
         </h1>
-        <p className="text-xl text-gray-500 mb-10 max-w-lg">
-          Create beautiful invitations, share a link, collect RSVPs, and manage your guest list — no subscriptions, ever.
+        <p className="text-xl text-gray-500 mb-4 max-w-lg font-medium">
+          Beautiful birthday invitations — completely free.
+        </p>
+        <p className="text-gray-400 mb-10 max-w-lg">
+          Themed designs for kids, share a link, collect RSVPs, manage your guest list — no subscriptions, ever.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
           <Link href="/signup" className="btn-primary text-lg px-8 py-4">
