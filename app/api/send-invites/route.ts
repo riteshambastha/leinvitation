@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-server'
 import { sendInviteEmail } from '@/lib/email'
+import type { Guest } from '@/lib/types'
 
 export async function POST(req: Request) {
   try {
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
     if (guestError) throw guestError
 
     const results = await Promise.allSettled(
-      (guests ?? []).map(async (guest) => {
+      (guests as Guest[] ?? []).map(async (guest) => {
         await sendInviteEmail({ event, guestName: guest.name, guestEmail: guest.email })
         await supabase
           .from('guests')
