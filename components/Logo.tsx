@@ -58,21 +58,24 @@ export function LogoWordmark({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' | 'xl'
   const s = sizes[size]
 
   return (
-    <span className="inline-flex items-baseline gap-0.5 leading-none select-none">
-      <span
-        className={`${s.le} font-black tracking-tight`}
-        style={{
-          background: 'linear-gradient(135deg, #7c3aed 0%, #db2777 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}
-      >
-        Le<span style={{ fontStyle: 'italic', opacity: 0.8 }}>`</span>
+    <span className={`${s.le} font-black tracking-tight leading-none select-none`} style={{ letterSpacing: '-0.01em' }}>
+      <span style={{
+        background: 'linear-gradient(135deg, #7c3aed 0%, #db2777 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+      }}>
+        Le
       </span>
-      <span className={`${s.inv} font-semibold text-gray-700`}>
-        Invitation
-      </span>
+      <span style={{
+        background: 'linear-gradient(135deg, #7c3aed 0%, #db2777 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        fontStyle: 'italic',
+        fontWeight: 400,
+      }}>`</span>
+      <span className={`${s.inv} font-semibold`} style={{ color: '#374151' }}>Invitation</span>
     </span>
   )
 }
