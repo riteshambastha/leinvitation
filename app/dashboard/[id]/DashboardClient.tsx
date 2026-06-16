@@ -8,6 +8,12 @@ import PreviewModal from '@/components/PreviewModal'
 
 type Filter = 'all' | 'attending' | 'not_attending' | 'maybe'
 
+type GuestForm = {
+  name: string; email: string; phone: string
+  rsvp_status: 'attending' | 'not_attending' | 'maybe'
+  adult_count: number; kids_count: number
+}
+
 export default function DashboardClient({
   event,
   initialGuests,
@@ -25,9 +31,33 @@ export default function DashboardClient({
   const [sendingTo, setSendingTo] = useState<string | null>(null)
   const [sendingReminder, setSendingReminder] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
-  const [emailForm, setEmailForm] = useState({ name: '', email: '' })
   const [addError, setAddError] = useState<string | null>(null)
   const [addLoading, setAddLoading] = useState(false)
+
+  const blankForm = (): GuestForm => ({
+    name: '', email: '', phone: '',
+    rsvp_status: 'attending', adult_count: 1, kids_count: 0,
+  })
+  const [guestForm, setGuestForm] = useState<GuestForm>(blankForm())
+  const setGF = (field: keyof GuestForm, value: string | number) =>
+    setGuestForm(f => ({ ...f, [field]: value }))
+
+  // Edit modal
+  const [editGuest, setEditGuest] = useState<Guest | null>(null)
+  const [editError, setEditError] = useState<string | null>(null)
+  const [editLoading, setEditLoading] = useState(false)
+
+  function openEdit(g: Guest) {
+    setEditGuest(g)
+    setGuestForm({
+      name: g.name, email: g.email, phone: g.phone ?? '',
+      rsvp_status: g.rsvp_status,
+      adult_count: g.adult_count ?? 1, kids_count: g.kids_count ?? 0,
+    })
+    setEditError(null)
+  }
+  function closeEdit() { setEditGuest(null); setEditError(null) }
+  function closeAdd()  { setAddModal(false); setAddError(null); setGuestForm(blankForm()) }
 
   const inviteLink = `${window.location.origin}/invite/${event.id}`
   const dashboardLink = window.location.href
@@ -103,17 +133,38 @@ export default function DashboardClient({
       const res = await fetch('/api/guests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event_id: event.id, ...emailForm }),
+        body: JSON.stringify({ event_id: event.id, ...guestForm }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Failed to add guest')
       setGuests(gs => [data, ...gs])
-      setEmailForm({ name: '', email: '' })
-      setAddModal(false)
+      closeAdd()
     } catch (err: unknown) {
       setAddError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
       setAddLoading(false)
+    }
+  }
+
+  async function handleEditGuest(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editGuest) return
+    setEditLoading(true)
+    setEditError(null)
+    try {
+      const res = await fetch(`/api/guests/${editGuest.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(guestForm),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Failed to update guest')
+      setGuests(gs => gs.map(g => g.id === editGuest.id ? data : g))
+      closeEdit()
+    } catch (err: unknown) {
+      setEditError(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setEditLoading(false)
     }
   }
 
@@ -254,7 +305,7 @@ export default function DashboardClient({
                       <a
                         href={`sms:${guest.phone}?body=You're invited to ${encodeURIComponent(event.title)}! RSVP here: ${inviteLink}`}
                         className="text-xs btn-secondary py-1.5 px-3">
-                        📱 Text invite
+                        📱 Text
                       </a>
                     )}
                     <button
@@ -262,6 +313,11 @@ export default function DashboardClient({
                       disabled={sendingReminder === guest.id}
                       className="text-xs btn-secondary py-1.5 px-3">
                       {sendingReminder === guest.id ? '...' : '⏰ Remind'}
+                    </button>
+                    <button
+                      onClick={() => openEdit(guest)}
+                      className="text-xs btn-secondary py-1.5 px-3">
+                      ✏️ Edit
                     </button>
                   </div>
                 </div>
@@ -302,40 +358,140 @@ export default function DashboardClient({
         <PreviewModal event={event} onClose={() => setPreviewOpen(false)} />
       )}
 
-      {/* Add guest modal */}
+      {/* ── Add guest modal ─────────────────────────────────────────────── */}
       {addModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Add guest manually</h2>
-            <form onSubmit={handleAddGuest} className="space-y-4">
-              <div>
-                <label className="label">Name *</label>
-                <input className="input" required value={emailForm.name}
-                  onChange={e => setEmailForm(f => ({ ...f, name: e.target.value }))}
-                  placeholder="Jane Smith" />
-              </div>
-              <div>
-                <label className="label">Email *</label>
-                <input className="input" type="email" required value={emailForm.email}
-                  onChange={e => setEmailForm(f => ({ ...f, email: e.target.value }))}
-                  placeholder="jane@email.com" />
-              </div>
-              {addError && (
-                <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
-                  {addError}
-                </div>
-              )}
-              <div className="flex gap-3">
-                <button type="button" onClick={() => { setAddModal(false); setAddError(null) }}
-                  className="btn-secondary flex-1">Cancel</button>
-                <button type="submit" disabled={addLoading} className="btn-primary flex-1">
-                  {addLoading ? 'Adding...' : 'Add guest'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <GuestFormModal
+          title="Add guest"
+          submitLabel={addLoading ? 'Adding…' : 'Add guest'}
+          form={guestForm} setField={setGF}
+          onSubmit={handleAddGuest} onClose={closeAdd}
+          error={addError} loading={addLoading}
+        />
       )}
+
+      {/* ── Edit guest modal ─────────────────────────────────────────────── */}
+      {editGuest && (
+        <GuestFormModal
+          title={`Edit — ${editGuest.name}`}
+          submitLabel={editLoading ? 'Saving…' : 'Save changes'}
+          form={guestForm} setField={setGF}
+          onSubmit={handleEditGuest} onClose={closeEdit}
+          error={editError} loading={editLoading}
+        />
+      )}
+    </div>
+  )
+}
+
+// ── Shared guest form modal ──────────────────────────────────────────────────
+function GuestFormModal({
+  title, submitLabel, form, setField, onSubmit, onClose, error, loading,
+}: {
+  title: string
+  submitLabel: string
+  form: GuestForm
+  setField: (field: keyof GuestForm, value: string | number) => void
+  onSubmit: (e: React.FormEvent) => void
+  onClose: () => void
+  error: string | null
+  loading: boolean
+}) {
+  const attending = form.rsvp_status !== 'not_attending'
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-4">
+          {/* Name + Email */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Name *</label>
+              <input className="input" required value={form.name}
+                onChange={e => setField('name', e.target.value)}
+                placeholder="Jane Smith" />
+            </div>
+            <div>
+              <label className="label">Phone</label>
+              <input className="input" type="tel" value={form.phone}
+                onChange={e => setField('phone', e.target.value)}
+                placeholder="+1 555-0100" />
+            </div>
+          </div>
+          <div>
+            <label className="label">Email *</label>
+            <input className="input" type="email" required value={form.email}
+              onChange={e => setField('email', e.target.value)}
+              placeholder="jane@email.com" />
+          </div>
+
+          {/* RSVP status */}
+          <div>
+            <label className="label">RSVP status</label>
+            <div className="grid grid-cols-3 gap-2">
+              {([
+                { value: 'attending',     emoji: '✅', label: "Coming" },
+                { value: 'maybe',         emoji: '🤔', label: 'Maybe' },
+                { value: 'not_attending', emoji: '❌', label: "Not coming" },
+              ] as const).map(opt => (
+                <button key={opt.value} type="button"
+                  onClick={() => setField('rsvp_status', opt.value)}
+                  className={`flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl border-2 text-xs font-medium transition-all ${
+                    form.rsvp_status === opt.value
+                      ? 'border-purple-500 bg-purple-50 text-purple-700'
+                      : 'border-gray-200 text-gray-500 hover:border-purple-300'
+                  }`}>
+                  <span className="text-lg">{opt.emoji}</span>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Adults + Kids — only when coming or maybe */}
+          {attending && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Adults 🧑</label>
+                <select className="input" value={form.adult_count}
+                  onChange={e => setField('adult_count', parseInt(e.target.value))}>
+                  {[1,2,3,4,5].map(n => (
+                    <option key={n} value={n}>{n === 1 ? '1 (just them)' : `${n} adults`}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="label">Kids / Siblings 👶</label>
+                <select className="input" value={form.kids_count}
+                  onChange={e => setField('kids_count', parseInt(e.target.value))}>
+                  {[0,1,2,3,4,5].map(n => (
+                    <option key={n} value={n}>{n === 0 ? 'None' : `${n} kid${n > 1 ? 's' : ''}`}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose} className="btn-secondary flex-1">
+              Cancel
+            </button>
+            <button type="submit" disabled={loading} className="btn-primary flex-1 disabled:opacity-50">
+              {submitLabel}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

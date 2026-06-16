@@ -382,7 +382,13 @@ export default function EditClient({
       {/* Preview modal — merges saved event with live form state */}
       {previewOpen && (
         <PreviewModal
-          event={{ ...event, ...form }}
+          event={{
+            ...event,
+            ...form,
+            banner_id:            form.banner_id            ?? undefined,
+            banner_url:           form.banner_url           ?? undefined,
+            child_photo_url:      form.child_photo_url      ?? undefined,
+          }}
           onClose={() => setPreviewOpen(false)}
         />
       )}
