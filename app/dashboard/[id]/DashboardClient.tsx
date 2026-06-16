@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { Event, Guest } from '@/lib/types'
 import { format, parseISO } from 'date-fns'
 
@@ -9,10 +10,13 @@ type Filter = 'all' | 'attending' | 'not_attending' | 'maybe'
 export default function DashboardClient({
   event,
   initialGuests,
+  token,
 }: {
   event: Event
   initialGuests: Guest[]
+  token: string | null
 }) {
+  const router = useRouter()
   const [guests, setGuests] = useState<Guest[]>(initialGuests)
   const [filter, setFilter] = useState<Filter>('all')
   const [addModal, setAddModal] = useState(false)
@@ -148,6 +152,11 @@ export default function DashboardClient({
               onClick={() => copyLink(inviteLink)}
               className="btn-secondary text-sm py-2 px-4">
               {copied ? '✅ Copied!' : '🔗 Copy invite link'}
+            </button>
+            <button
+              onClick={() => router.push(token ? `/edit/${event.id}?token=${token}` : `/edit/${event.id}`)}
+              className="btn-secondary text-sm py-2 px-4">
+              ✏️ Edit invite
             </button>
             <button onClick={sendAllInvites} disabled={sendingTo === 'all'} className="btn-primary text-sm py-2 px-4">
               {sendingTo === 'all' ? 'Sending...' : '✉️ Email all uninvited'}
