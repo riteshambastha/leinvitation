@@ -222,7 +222,10 @@ export default function DashboardClient({
                         <span className="text-xs text-gray-500">+{guest.plus_one_count}</span>
                       )}
                     </div>
-                    <p className="text-gray-500 text-sm">{guest.email}</p>
+                    <p className="text-gray-500 text-sm">
+                      {guest.email}
+                      {guest.phone && <span className="text-gray-400"> · {guest.phone}</span>}
+                    </p>
                     {guest.message && (
                       <p className="text-gray-400 text-sm mt-1 italic">"{guest.message}"</p>
                     )}
@@ -231,7 +234,7 @@ export default function DashboardClient({
                       {guest.invited_at && ` · Invite sent ${format(parseISO(guest.invited_at), 'MMM d')}`}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     {!guest.invited_at && (
                       <button
                         onClick={() => sendInvite(guest)}
@@ -239,6 +242,13 @@ export default function DashboardClient({
                         className="text-xs btn-secondary py-1.5 px-3">
                         {sendingTo === guest.id ? '...' : '✉️ Send invite'}
                       </button>
+                    )}
+                    {guest.phone && (
+                      <a
+                        href={`sms:${guest.phone}?body=You're invited to ${encodeURIComponent(event.title)}! RSVP here: ${inviteLink}`}
+                        className="text-xs btn-secondary py-1.5 px-3">
+                        📱 Text invite
+                      </a>
                     )}
                     <button
                       onClick={() => sendReminder(guest)}
