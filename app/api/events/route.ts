@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase-server'
+import { createAdminClient, createServerSupabaseClient } from '@/lib/supabase-server'
 import { sendHostConfirmationEmail } from '@/lib/email'
 
 export async function POST(req: Request) {
@@ -14,6 +14,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
+    // Get the authenticated user (if any) to link the event
+    const serverClient = createServerSupabaseClient()
+    const { data: { user } } = await serverClient.auth.getUser()
+
     const supabase = createAdminClient()
     const { data: event, error } = await supabase
       .from('events')
@@ -21,6 +25,7 @@ export async function POST(req: Request) {
         host_name, host_email, title, date, time, venue, venue_address,
         description, theme: theme ?? 'confetti', cover_emoji: cover_emoji ?? '🎂',
         plus_ones_allowed: plus_ones_allowed ?? true, message_prompt,
+        user_id: user?.id ?? null,
       })
       .select()
       .single()
