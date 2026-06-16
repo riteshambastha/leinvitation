@@ -5,6 +5,7 @@ import type { Event } from '@/lib/types'
 import { getTemplate } from '@/lib/templates'
 import { format, parseISO } from 'date-fns'
 import InvitationCard from '@/components/InvitationCard'
+import AddToCalendar from '@/components/AddToCalendar'
 
 
 export default function RSVPClient({ event }: { event: Event }) {
@@ -70,7 +71,10 @@ export default function RSVPClient({ event }: { event: Event }) {
               <p className="text-gray-500 text-sm">{eventDate} · {event.time}</p>
             </div>
           </div>
-          <p className="text-gray-500 text-sm">📍 {event.venue}</p>
+          <p className="text-gray-500 text-sm mb-4">📍 {event.venue}</p>
+          {form.rsvp_status === 'attending' && (
+            <AddToCalendar event={event} variant="compact" />
+          )}
         </div>
         <p className="text-gray-400 text-sm mt-6">
           A confirmation was sent to <strong>{form.email}</strong>
@@ -86,6 +90,11 @@ export default function RSVPClient({ event }: { event: Event }) {
       {/* ── Invitation Card ─────────────────────────────────────────────── */}
       <div className="flex justify-center px-4 pt-8 pb-6">
         <InvitationCard event={event} />
+      </div>
+
+      {/* ── Add to calendar ─────────────────────────────────────────────── */}
+      <div className="max-w-md mx-auto px-4 mb-4">
+        <AddToCalendar event={event} />
       </div>
 
       {/* ── Description (if any) ────────────────────────────────────────── */}
