@@ -15,7 +15,8 @@ export default function RSVPClient({ event }: { event: Event }) {
     email: '',
     phone: '',
     rsvp_status: '' as 'attending' | 'not_attending' | 'maybe' | '',
-    plus_one_count: 0,
+    adult_count: 1,
+    kids_count: 0,
     message: '',
   })
   const [submitted, setSubmitted] = useState(false)
@@ -266,15 +267,26 @@ export default function RSVPClient({ event }: { event: Event }) {
                 placeholder="+1 (555) 000-0000"/>
             </div>
 
-            {event.plus_ones_allowed && form.rsvp_status === 'attending' && (
-              <div>
-                <label className="label">Bringing anyone? (+1s)</label>
-                <select className="input" value={form.plus_one_count}
-                  onChange={e => setForm(f => ({ ...f, plus_one_count: parseInt(e.target.value) }))}>
-                  {[0, 1, 2, 3, 4].map(n => (
-                    <option key={n} value={n}>{n === 0 ? 'Just me' : `+${n} guest${n > 1 ? 's' : ''}`}</option>
-                  ))}
-                </select>
+            {form.rsvp_status === 'attending' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label">Adults 🧑</label>
+                  <select className="input" value={form.adult_count}
+                    onChange={e => setForm(f => ({ ...f, adult_count: parseInt(e.target.value) }))}>
+                    {[1, 2, 3, 4, 5].map(n => (
+                      <option key={n} value={n}>{n === 1 ? '1 (just me)' : `${n} adults`}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Kids / Siblings 👶</label>
+                  <select className="input" value={form.kids_count}
+                    onChange={e => setForm(f => ({ ...f, kids_count: parseInt(e.target.value) }))}>
+                    {[0, 1, 2, 3, 4, 5].map(n => (
+                      <option key={n} value={n}>{n === 0 ? 'None' : `${n} kid${n > 1 ? 's' : ''}`}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             )}
 

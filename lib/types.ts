@@ -30,7 +30,9 @@ export interface Guest {
   email: string
   phone?: string
   rsvp_status: 'attending' | 'not_attending' | 'maybe'
-  plus_one_count: number
+  plus_one_count: number  // legacy: total extras (adults-1 + kids)
+  adult_count: number     // how many adults (including the RSVP'er), min 1
+  kids_count: number      // how many kids/siblings
   message?: string
   invited_at?: string   // when host sent invite email
   rsvped_at: string

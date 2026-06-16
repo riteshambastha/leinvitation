@@ -5,7 +5,10 @@ import { sendRsvpNotification } from '@/lib/email'
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { event_id, name, email, phone, rsvp_status, plus_one_count, message } = body
+    const { event_id, name, email, phone, rsvp_status, adult_count, kids_count, message } = body
+    const ac = Math.max(1, parseInt(adult_count) || 1)
+    const kc = Math.max(0, parseInt(kids_count)  || 0)
+    const plus_one_count = (ac - 1) + kc  // legacy total extras
 
     if (!event_id || !name || !email || !rsvp_status) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -38,7 +41,9 @@ export async function POST(req: Request) {
           email,
           phone: phone ?? null,
           rsvp_status,
-          plus_one_count: plus_one_count ?? 0,
+          adult_count: ac,
+          kids_count: kc,
+          plus_one_count,
           message: message ?? null,
           rsvped_at: new Date().toISOString(),
         },
@@ -56,7 +61,7 @@ export async function POST(req: Request) {
       event,
       guestName: name,
       rsvpStatus: rsvp_status,
-      plusOnes: plus_one_count ?? 0,
+      plusOnes: plus_one_count,
       message,
       dashboardUrl,
     }).catch(console.error)
