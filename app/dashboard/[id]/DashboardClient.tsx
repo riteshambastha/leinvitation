@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Event, Guest } from '@/lib/types'
 import { format, parseISO } from 'date-fns'
+import PreviewModal from '@/components/PreviewModal'
 
 type Filter = 'all' | 'attending' | 'not_attending' | 'maybe'
 
@@ -20,6 +21,7 @@ export default function DashboardClient({
   const [guests, setGuests] = useState<Guest[]>(initialGuests)
   const [filter, setFilter] = useState<Filter>('all')
   const [addModal, setAddModal] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
   const [sendingTo, setSendingTo] = useState<string | null>(null)
   const [sendingReminder, setSendingReminder] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -149,14 +151,19 @@ export default function DashboardClient({
           </div>
           <div className="flex gap-3 flex-wrap">
             <button
+              onClick={() => setPreviewOpen(true)}
+              className="btn-secondary text-sm py-2 px-4">
+              👁 Preview
+            </button>
+            <button
               onClick={() => copyLink(inviteLink)}
               className="btn-secondary text-sm py-2 px-4">
-              {copied ? '✅ Copied!' : '🔗 Copy invite link'}
+              {copied ? '✅ Copied!' : '🔗 Copy link'}
             </button>
             <button
               onClick={() => router.push(token ? `/edit/${event.id}?token=${token}` : `/edit/${event.id}`)}
               className="btn-secondary text-sm py-2 px-4">
-              ✏️ Edit invite
+              ✏️ Edit
             </button>
             <button onClick={sendAllInvites} disabled={sendingTo === 'all'} className="btn-primary text-sm py-2 px-4">
               {sendingTo === 'all' ? 'Sending...' : '✉️ Email all uninvited'}
@@ -289,6 +296,11 @@ export default function DashboardClient({
           </div>
         </div>
       </div>
+
+      {/* Preview modal */}
+      {previewOpen && (
+        <PreviewModal event={event} onClose={() => setPreviewOpen(false)} />
+      )}
 
       {/* Add guest modal */}
       {addModal && (

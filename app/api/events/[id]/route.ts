@@ -35,7 +35,8 @@ export async function PATCH(
     const allowed = [
       'title', 'date', 'time', 'venue', 'venue_address', 'description',
       'cover_emoji', 'plus_ones_allowed', 'message_prompt',
-      'template_id', 'theme', 'banner_id', 'banner_url', 'child_photo_url',
+      'template_id', 'theme', 'banner_id', 'banner_url',
+      'child_photo_url', 'child_photo_size', 'child_photo_position',
     ]
     const update: Record<string, unknown> = {}
     for (const key of allowed) {

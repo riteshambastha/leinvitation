@@ -20,7 +20,9 @@ export interface Event {
   user_id?: string
   banner_id?: string        // library banner id (e.g. 'minions-banana')
   banner_url?: string       // custom uploaded banner image URL
-  child_photo_url?: string  // optional child portrait shown on the card
+  child_photo_url?: string       // optional child portrait shown on the card
+  child_photo_size?: 'sm' | 'md' | 'lg'
+  child_photo_position?: 'top-center' | 'center' | 'top-left' | 'top-right'
   created_at: string
 }
 

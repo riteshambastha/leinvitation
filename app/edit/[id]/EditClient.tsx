@@ -6,6 +6,7 @@ import type { Event } from '@/lib/types'
 import BannerPicker from '@/components/BannerPicker'
 import { getTemplate } from '@/lib/templates'
 import { getBanner } from '@/lib/banners'
+import PreviewModal from '@/components/PreviewModal'
 
 export default function EditClient({
   event,
@@ -19,11 +20,15 @@ export default function EditClient({
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
 
+  const [previewOpen, setPreviewOpen] = useState(false)
+
   const [form, setForm] = useState({
-    template_id:      event.template_id ?? event.theme ?? 'birthday',
-    banner_id:        event.banner_id   ?? null as string | null,
-    banner_url:       event.banner_url  ?? null as string | null,
-    child_photo_url:  event.child_photo_url ?? null as string | null,
+    template_id:          event.template_id ?? event.theme ?? 'birthday',
+    banner_id:            event.banner_id   ?? null as string | null,
+    banner_url:           event.banner_url  ?? null as string | null,
+    child_photo_url:      event.child_photo_url      ?? null as string | null,
+    child_photo_size:     (event.child_photo_size     ?? 'md') as 'sm' | 'md' | 'lg',
+    child_photo_position: (event.child_photo_position ?? 'top-center') as 'top-center' | 'center' | 'top-left' | 'top-right',
     title:            event.title,
     date:             event.date,
     time:             event.time,
@@ -102,12 +107,18 @@ export default function EditClient({
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-extrabold text-gray-900">Edit invite</h1>
-            <p className="text-gray-500 mt-1">Changes save immediately — your invite link stays the same</p>
+            <p className="text-gray-500 mt-1">Changes save — your invite link stays the same</p>
           </div>
-          <button onClick={() => router.push(dashboardHref)}
-            className="btn-secondary text-sm py-2 px-4">
-            ← Back to dashboard
-          </button>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setPreviewOpen(true)}
+              className="btn-secondary text-sm py-2 px-4">
+              👁 Preview
+            </button>
+            <button onClick={() => router.push(dashboardHref)}
+              className="btn-secondary text-sm py-2 px-4">
+              ← Dashboard
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -123,30 +134,85 @@ export default function EditClient({
             </div>
 
             {form.child_photo_url ? (
-              <div className="flex items-center gap-5">
-                <div style={{
-                  width: 90, height: 90, borderRadius: '50%',
-                  border: '4px solid #7c3aed',
-                  boxShadow: '0 4px 20px rgba(124,58,237,0.3)',
-                  overflow: 'hidden', flexShrink: 0,
-                }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={form.child_photo_url} alt="Child photo"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-green-700">✓ Photo uploaded</p>
-                  <div className="flex gap-3">
-                    <button type="button" onClick={() => childPhotoRef.current?.click()}
-                      className="text-sm text-purple-600 font-medium hover:underline">
-                      Replace
-                    </button>
-                    <button type="button" onClick={() => set('child_photo_url', null)}
-                      className="text-sm text-red-500 hover:underline">
-                      Remove
-                    </button>
+              <div className="space-y-4">
+                {/* Photo preview + replace/remove */}
+                <div className="flex items-center gap-5">
+                  <div style={{
+                    width: 90, height: 90, borderRadius: '50%',
+                    border: '4px solid #7c3aed',
+                    boxShadow: '0 4px 20px rgba(124,58,237,0.3)',
+                    overflow: 'hidden', flexShrink: 0,
+                  }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={form.child_photo_url} alt="Child photo"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-green-700">✓ Photo uploaded</p>
+                    <div className="flex gap-3">
+                      <button type="button" onClick={() => childPhotoRef.current?.click()}
+                        className="text-sm text-purple-600 font-medium hover:underline">
+                        Replace
+                      </button>
+                      <button type="button" onClick={() => set('child_photo_url', null)}
+                        className="text-sm text-red-500 hover:underline">
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 </div>
+
+                {/* Size picker */}
+                <div>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Photo size</p>
+                  <div className="flex gap-2">
+                    {([
+                      { value: 'sm', label: 'Small',  desc: 'Subtle' },
+                      { value: 'md', label: 'Medium', desc: 'Balanced' },
+                      { value: 'lg', label: 'Large',  desc: 'Hero' },
+                    ] as const).map(opt => (
+                      <button key={opt.value} type="button"
+                        onClick={() => setForm(f => ({ ...f, child_photo_size: opt.value }))}
+                        className={`flex-1 py-2 px-3 rounded-xl border-2 text-sm transition-all ${
+                          form.child_photo_size === opt.value
+                            ? 'border-purple-500 bg-purple-50 text-purple-700 font-semibold'
+                            : 'border-gray-200 text-gray-500 hover:border-purple-300'
+                        }`}>
+                        <div className="font-medium">{opt.label}</div>
+                        <div className="text-xs opacity-70">{opt.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Position picker */}
+                <div>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Photo position</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([
+                      { value: 'top-center', label: '⬆ Top center' },
+                      { value: 'center',     label: '⊙ Center' },
+                      { value: 'top-left',   label: '↖ Top left' },
+                      { value: 'top-right',  label: '↗ Top right' },
+                    ] as const).map(opt => (
+                      <button key={opt.value} type="button"
+                        onClick={() => setForm(f => ({ ...f, child_photo_position: opt.value }))}
+                        className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                          form.child_photo_position === opt.value
+                            ? 'border-purple-500 bg-purple-50 text-purple-700'
+                            : 'border-gray-200 text-gray-500 hover:border-purple-300'
+                        }`}>
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Live preview button */}
+                <button type="button" onClick={() => setPreviewOpen(true)}
+                  className="w-full py-2.5 rounded-xl border-2 border-dashed border-purple-300 text-purple-600 text-sm font-semibold hover:bg-purple-50 transition-colors">
+                  👁 Preview card with this photo
+                </button>
               </div>
             ) : (
               <button type="button" onClick={() => childPhotoRef.current?.click()}
@@ -312,6 +378,14 @@ export default function EditClient({
           )}
         </form>
       </div>
+
+      {/* Preview modal — merges saved event with live form state */}
+      {previewOpen && (
+        <PreviewModal
+          event={{ ...event, ...form }}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
     </div>
   )
 }
