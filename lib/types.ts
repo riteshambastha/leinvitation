@@ -17,6 +17,9 @@ export interface Event {
   plus_ones_allowed: boolean
   message_prompt?: string
   dashboard_token: string  // secret token for host to access dashboard
+  user_id?: string
+  banner_id?: string       // library banner id (e.g. 'minions-banana')
+  banner_url?: string      // custom uploaded image URL
   created_at: string
 }
 

@@ -3,10 +3,13 @@
 import { useState } from 'react'
 import type { Event } from '@/lib/types'
 import { getTemplate } from '@/lib/templates'
+import { getBanner } from '@/lib/banners'
 import { format, parseISO } from 'date-fns'
 
 export default function RSVPClient({ event }: { event: Event }) {
   const template = getTemplate(event.template_id ?? event.theme ?? 'birthday')
+  const banner = getBanner(event.banner_id)
+
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -45,9 +48,9 @@ export default function RSVPClient({ event }: { event: Event }) {
   // ── Confirmation screen ──────────────────────────────────────────────────
   if (submitted) {
     const msgs = {
-      attending: { emoji: '🎉', headline: "You're going!", sub: "Can't wait to celebrate!" },
+      attending:     { emoji: '🎉', headline: "You're going!",      sub: "Can't wait to celebrate!" },
       not_attending: { emoji: '😢', headline: 'Sorry to miss you!', sub: `${event.host_name} will miss you.` },
-      maybe: { emoji: '🤔', headline: 'Maybe see you there!', sub: 'Let us know when you decide.' },
+      maybe:         { emoji: '🤔', headline: 'Maybe see you there!', sub: 'Let us know when you decide.' },
     }
     const msg = msgs[form.rsvp_status as keyof typeof msgs] ?? msgs.attending
 
@@ -77,57 +80,75 @@ export default function RSVPClient({ event }: { event: Event }) {
     )
   }
 
-  // ── Main RSVP page ───────────────────────────────────────────────────────
-  return (
-    <div className="min-h-screen pb-12">
-      {/* Theme header */}
-      <div className="relative overflow-hidden px-6 py-14 text-center"
-        style={{ background: template.header.background }}>
-        {/* Optional overlay */}
+  // ── Banner area (pure visual — no text on top of it) ─────────────────────
+  const BannerSection = () => {
+    if (event.banner_url) {
+      // Custom uploaded image
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={event.banner_url}
+          alt=""
+          className="w-full object-cover"
+          style={{ maxHeight: 260 }}
+        />
+      )
+    }
+    if (banner) {
+      const { Component } = banner
+      return <Component className="w-full" style={{ display: 'block', maxHeight: 260 }}/>
+    }
+    // Fallback: gradient strip with decorative emojis only
+    return (
+      <div className="relative w-full overflow-hidden" style={{ height: 220, background: template.header.background }}>
         {template.header.overlay && (
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ background: template.header.overlay }} />
+          <div className="absolute inset-0" style={{ background: template.header.overlay }}/>
         )}
-
-        {/* Scattered decorative emojis */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {template.header.decorEmojis.map((em, i) => {
+        <div className="absolute inset-0 flex items-center justify-center">
+          {template.header.decorEmojis.slice(0, 7).map((em, i) => {
             const positions = [
-              { top: '8%', left: '5%' }, { top: '15%', right: '8%' },
-              { top: '60%', left: '3%' }, { top: '70%', right: '5%' },
-              { top: '30%', left: '88%' }, { top: '45%', left: '10%' },
-              { bottom: '10%', left: '20%' }, { bottom: '15%', right: '20%' },
+              { top: '12%', left: '8%' },  { top: '10%', right: '10%' },
+              { top: '55%', left: '5%' },  { top: '60%', right: '6%' },
+              { top: '35%', left: '50%' }, { bottom: '12%', left: '25%' },
+              { bottom: '14%', right: '25%' },
             ]
-            const pos = positions[i % positions.length]
             return (
-              <span key={i} className="absolute text-3xl select-none"
-                style={{ ...pos, opacity: 0.6, transform: `rotate(${(i * 37) % 60 - 30}deg)` }}>
+              <span key={i} className="absolute text-5xl select-none"
+                style={{ ...positions[i], opacity: 0.55, transform: `rotate(${(i * 37) % 60 - 30}deg)` }}>
                 {em}
               </span>
             )
           })}
         </div>
+      </div>
+    )
+  }
 
-        {/* Content */}
-        <div className="relative z-10">
-          <div className="text-7xl mb-3 drop-shadow-lg">{event.cover_emoji}</div>
-          <h1 className="text-4xl font-extrabold mb-2 drop-shadow-md"
-            style={{ color: template.header.textColor, textShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
-            {event.title}
-          </h1>
-          <p className="text-lg font-medium opacity-90 mb-1"
-            style={{ color: template.header.textColor }}>
-            Hosted by {event.host_name}
-          </p>
-          <p className="text-sm italic opacity-75"
-            style={{ color: template.header.textColor }}>
+  // ── Main RSVP page ───────────────────────────────────────────────────────
+  return (
+    <div className="min-h-screen pb-12 bg-gray-50">
+
+      {/* ── Banner (visual only, nothing written on it) ───────────────────── */}
+      <div className="w-full overflow-hidden" style={{ maxHeight: 260 }}>
+        <BannerSection/>
+      </div>
+
+      {/* ── Accent strip to connect banner with content ───────────────────── */}
+      <div className="h-2" style={{ background: template.button.background }}/>
+
+      <div className="max-w-lg mx-auto px-4 py-5 space-y-4">
+
+        {/* ── Event title card ──────────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-6 py-5 text-center">
+          <div className="text-5xl mb-3">{event.cover_emoji}</div>
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-1">{event.title}</h1>
+          <p className="text-gray-500 font-medium">Hosted by {event.host_name}</p>
+          <p className="text-sm italic mt-1" style={{ color: template.button.background }}>
             {template.header.tagline}
           </p>
         </div>
-      </div>
 
-      <div className="max-w-lg mx-auto px-4 -mt-4 space-y-4">
-        {/* Event details */}
+        {/* ── Event details card ────────────────────────────────────────────── */}
         <div className="card">
           <div className="space-y-3">
             <div className="flex items-start gap-3">
@@ -152,16 +173,16 @@ export default function RSVPClient({ event }: { event: Event }) {
           </div>
         </div>
 
-        {/* RSVP form */}
+        {/* ── RSVP form card ────────────────────────────────────────────────── */}
         <div className="card">
           <h2 className="text-xl font-bold text-gray-900 mb-5">Will you be there?</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
 
-            {/* Status */}
+            {/* Status buttons */}
             <div className="grid grid-cols-3 gap-3">
               {([
-                { value: 'attending', emoji: '✅', label: "I'm in!" },
-                { value: 'maybe', emoji: '🤔', label: 'Maybe' },
+                { value: 'attending',     emoji: '✅', label: "I'm in!" },
+                { value: 'maybe',         emoji: '🤔', label: 'Maybe' },
                 { value: 'not_attending', emoji: '❌', label: "Can't make it" },
               ] as const).map(opt => (
                 <button key={opt.value} type="button"
@@ -173,7 +194,7 @@ export default function RSVPClient({ event }: { event: Event }) {
                   }`}
                   style={form.rsvp_status === opt.value ? {
                     borderColor: template.button.background,
-                    backgroundColor: template.button.background + '15',
+                    backgroundColor: template.button.background + '18',
                     color: template.button.background,
                   } : {}}>
                   <span className="text-2xl">{opt.emoji}</span>
@@ -186,19 +207,19 @@ export default function RSVPClient({ event }: { event: Event }) {
               <label className="label">Your name *</label>
               <input className="input" required value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                placeholder="Jane Smith" />
+                placeholder="Jane Smith"/>
             </div>
             <div>
               <label className="label">Email *</label>
               <input className="input" type="email" required value={form.email}
                 onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                placeholder="jane@email.com" />
+                placeholder="jane@email.com"/>
             </div>
             <div>
               <label className="label">Phone (optional)</label>
               <input className="input" type="tel" value={form.phone}
                 onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                placeholder="+1 (555) 000-0000" />
+                placeholder="+1 (555) 000-0000"/>
             </div>
 
             {event.plus_ones_allowed && form.rsvp_status === 'attending' && (
@@ -217,7 +238,7 @@ export default function RSVPClient({ event }: { event: Event }) {
               <label className="label">Message for {event.host_name} (optional)</label>
               <textarea className="input resize-none" rows={3} value={form.message}
                 onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
-                placeholder={event.message_prompt ?? 'Say something nice...'} />
+                placeholder={event.message_prompt ?? 'Say something nice…'}/>
             </div>
 
             {error && (
@@ -228,11 +249,8 @@ export default function RSVPClient({ event }: { event: Event }) {
 
             <button type="submit" disabled={loading}
               className="w-full py-4 rounded-xl font-bold text-lg transition-opacity disabled:opacity-50"
-              style={{
-                background: template.button.background,
-                color: template.button.text,
-              }}>
-              {loading ? 'Sending RSVP...' : `${template.emoji} Send my RSVP!`}
+              style={{ background: template.button.background, color: template.button.text }}>
+              {loading ? 'Sending RSVP…' : `${template.emoji} Send my RSVP!`}
             </button>
           </form>
         </div>
