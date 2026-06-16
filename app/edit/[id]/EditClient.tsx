@@ -200,7 +200,7 @@ export default function EditClient({
               templateId={form.template_id}
               selectedBannerId={form.banner_id}
               customBannerUrl={form.banner_url}
-              onSelect={({ bannerId, bannerUrl }) => {
+              onSelect={(bannerId, bannerUrl) => {
                 setForm(f => ({ ...f, banner_id: bannerId, banner_url: bannerUrl }))
               }}
             />
